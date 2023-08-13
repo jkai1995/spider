@@ -303,11 +303,11 @@ void OLED_ShowChar(uint8_t x,uint8_t y,uint8_t chr,uint8_t size1,uint8_t mode)
 //size1:字体大小 
 //*chr:字符串起始地址 
 //mode:0,反色显示;1,正常显示
-void OLED_ShowString(uint8_t x,uint8_t y,uint8_t *chr,uint8_t size1,uint8_t mode)
+void OLED_ShowString(uint8_t x,uint8_t y,char *chr,uint8_t size1,uint8_t mode)
 {
 	while((*chr>=' ')&&(*chr<='~'))//判断是不是非法字符!
 	{
-		OLED_ShowChar(x,y,*chr,size1,mode);
+		OLED_ShowChar(x,y,(uint8_t)(*chr),size1,mode);
 		if(size1==8)x+=6;
 		else x+=size1/2;
 		chr++;

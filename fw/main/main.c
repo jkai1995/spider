@@ -19,7 +19,7 @@
 #include "oled.h"
 #include "bmp.h"
 #include <esp_log.h>
-
+#include "inputKey.h"
 static const char *TAG = "wjk";
 
 
@@ -88,9 +88,55 @@ void app_main(void)
 
     //webserver_main();
 
+    int updateIntervalMs = 20;
+
     int ret = I2C1_Init(100000);
     ESP_LOGI(TAG, "I2C1_Init ret = %d",ret);
     OLED_Init();
     showDemo();
     //webserver_main();
+
+    inputKeyInit(updateIntervalMs);
+    int keyValue1= 0;
+    int keyValue2= 0;
+    int keyValue3= 0;
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+    const TickType_t ticks = pdMS_TO_TICKS(updateIntervalMs);
+    while (1)
+    {
+        xTaskDelayUntil( &xLastWakeTime, ticks);
+        updateKeyValue();
+
+        if (state_None != getKeyState(Up))
+        {
+            keyValue1++;
+        }
+        else
+        {
+            keyValue1 = 0;
+        }
+
+        if (state_None != getKeyState(Middle))
+        {
+            keyValue2++;
+        }
+        else
+        {
+            keyValue2 = 0;
+        }
+
+        if (state_None != getKeyState(Down))
+        {
+            keyValue3++;
+        }
+        else
+        {
+            keyValue3 = 0;
+        }
+
+        if (keyValue1 > 0 || keyValue2 > 0 || keyValue3 >0)
+        {
+            ESP_LOGI(TAG, "keyCount50Hz = %d,%d,%d",getKeyState(Up),getKeyState(Middle),getKeyState(Down));
+        }
+    }
 }
