@@ -20,6 +20,8 @@
 #include "bmp.h"
 #include <esp_log.h>
 #include "inputKey.h"
+#include "powerCtrl.h"
+
 static const char *TAG = "wjk";
 
 
@@ -93,6 +95,7 @@ void app_main(void)
     int ret = I2C1_Init(100000);
     ESP_LOGI(TAG, "I2C1_Init ret = %d",ret);
     OLED_Init();
+    PowerCtrlInit();
     showDemo();
     //webserver_main();
 
@@ -100,13 +103,18 @@ void app_main(void)
     int keyValue1= 0;
     int keyValue2= 0;
     int keyValue3= 0;
+    uint32_t voltage = 0;
+    uint32_t lastv = 0;
     TickType_t xLastWakeTime = xTaskGetTickCount();
     const TickType_t ticks = pdMS_TO_TICKS(updateIntervalMs);
     while (1)
     {
         xTaskDelayUntil( &xLastWakeTime, ticks);
         updateKeyValue();
+        updateAdcValue();
 
+        voltage = getPowerVoltage();
+        ESP_LOGI(TAG, "voltage %d",voltage);
         if (state_None != getKeyState(Up))
         {
             keyValue1++;
@@ -138,5 +146,16 @@ void app_main(void)
         {
             ESP_LOGI(TAG, "keyCount50Hz = %d,%d,%d",getKeyState(Up),getKeyState(Middle),getKeyState(Down));
         }
+
+
+
+        if (lastv != voltage)
+        {
+            OLED_ShowNum(0,0,voltage,10,16,1);
+            OLED_Refresh();
+        }
+
+
+        lastv = voltage;
     }
 }
