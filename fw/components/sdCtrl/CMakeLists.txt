@@ -1,6 +1,6 @@
-set(COMPONENT_SRCS  "powerCtrl.c")
+set(COMPONENT_SRCS  "sdCtrl.c" "sdio.c")
 
 idf_component_register(SRCS "${COMPONENT_SRCS}"
                     INCLUDE_DIRS "include"
-					PRIV_REQUIRES esp_adc_cal gpioDriver
+					PRIV_REQUIRES gpioDriver fatfs
 					)

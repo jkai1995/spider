@@ -21,6 +21,7 @@
 #include <esp_log.h>
 #include "inputKey.h"
 #include "powerCtrl.h"
+#include "sdCtrl.h"
 
 static const char *TAG = "wjk";
 
@@ -96,9 +97,11 @@ void app_main(void)
     ESP_LOGI(TAG, "I2C1_Init ret = %d",ret);
     OLED_Init();
     PowerCtrlInit();
+    SDCardCtrlInit();
+    sdCtrlSelectSDCard();
     showDemo();
     //webserver_main();
-
+    SDIOInit();
     inputKeyInit(updateIntervalMs);
     int keyValue1= 0;
     int keyValue2= 0;

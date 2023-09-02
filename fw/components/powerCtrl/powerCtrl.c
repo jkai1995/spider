@@ -6,17 +6,11 @@
 #include "driver/adc.h"
 #include "esp_adc_cal.h"
 #include "driver/gpio.h"
+#include "gpioDriver.h"
 #include "powerCtrl.h"
 
 static const char *TAG = "PowerCtrl";
 
-
-typedef struct
-{
-    char*           pinName;
-    uint32_t        pinx;
-    int             dftLevel;
-}gpioOutInfo_t;
 
 typedef enum
 {
