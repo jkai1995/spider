@@ -16,21 +16,21 @@
 #include "webserver.h"
 
 #include "i2cDriver.h"
-#include "oled.h"
-#include "bmp.h"
+#include "u8g2_esp32_hal.h"
+//#include "bmp.h"
 #include <esp_log.h>
 #include "inputKey.h"
 #include "powerCtrl.h"
 #include "sdCtrl.h"
+#include "rotary_encoder.h"
 
 static const char *TAG = "wjk";
 
-
 void showDemo(void)
 {
-	static uint8_t t=' ';
-			OLED_ShowPicture(0,0,128,64,BMP2,1);
-		OLED_Refresh();
+	//static uint8_t t=' ';
+			//OLED_ShowPicture(0,0,128,64,BMP2,1);
+		//OLED_Refresh();
 		/*vTaskDelay(pdMS_TO_TICKS(500));
 		OLED_Clear();
 		OLED_ShowChinese(0,0,0,16,1);
@@ -67,7 +67,26 @@ void showDemo(void)
 		OLED_ScrollDisplay(11,4,1);*/
 
 }
+rotary_encoder_t *encoder = NULL;
 
+
+void encoderInit(void)
+{
+    // Rotary encoder underlying device is represented by a PCNT unit in this example
+    uint32_t pcnt_unit = 0;
+
+    // Create rotary encoder instance
+    rotary_encoder_config_t config = ROTARY_ENCODER_DEFAULT_CONFIG((rotary_encoder_dev_t)pcnt_unit, 25, 33);
+
+    ESP_ERROR_CHECK(rotary_encoder_new_ec11(&config, &encoder));
+
+    // Filter out glitch (1us)
+    ESP_ERROR_CHECK(encoder->set_glitch_filter(encoder, 1));
+
+    // Start encoder
+    ESP_ERROR_CHECK(encoder->start(encoder));
+
+}
 
 void app_main(void)
 {
@@ -95,11 +114,13 @@ void app_main(void)
 
     int ret = I2C1_Init(100000);
     ESP_LOGI(TAG, "I2C1_Init ret = %d",ret);
-    OLED_Init();
+    //OLED_Init();
     PowerCtrlInit();
     SDCardCtrlInit();
     sdCtrlSelectSDCard();
-    showDemo();
+    encoderInit();
+    //showDemo();
+    u8g2Init();
     //webserver_main();
     SDIOInit();
     inputKeyInit(updateIntervalMs);
@@ -150,12 +171,14 @@ void app_main(void)
             ESP_LOGI(TAG, "keyCount50Hz = %d,%d,%d",getKeyState(Up),getKeyState(Middle),getKeyState(Down));
         }
 
-
+        int counter = encoder->get_counter_value(encoder);
+        ESP_LOGI(TAG, "Encoder value: %d", counter);
 
         if (lastv != voltage)
         {
-            OLED_ShowNum(0,0,voltage,10,16,1);
-            OLED_Refresh();
+            //OLED_ShowNum(0,0,voltage,10,16,1);
+            //OLED_ShowNum(0,17,counter,10,16,1);
+            //OLED_Refresh();
         }
 
 

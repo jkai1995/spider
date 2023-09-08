@@ -1,6 +1,6 @@
 #include "i2cDriver.h"
 
-//static const char *TAG = "i2cDriver";
+static const char *TAG = "i2cDriver";
 
 #define I2C_MASTER_SCL_IO           16                         /*!< GPIO number used for I2C master clock */
 #define I2C_MASTER_SDA_IO           17                         /*!< GPIO number used for I2C master data  */
@@ -48,5 +48,40 @@ esp_err_t IIC_WriteBytes(uint8_t slaveAddr,uint8_t *data, size_t len)
 esp_err_t IIC_ReadReg(uint8_t slaveAddr,uint8_t reg_addr,uint8_t *data, size_t len)
 {
     return i2c_master_write_read_device(I2C_MASTER_NUM, (slaveAddr >> 1), &reg_addr, 1, data, len, I2C_MASTER_TIMEOUT_MS / portTICK_RATE_MS);
+}
+
+static i2c_cmd_handle_t handle_i2c;
+
+
+//slaveAddr 8-bit
+void IIC_start(uint8_t i2c_address)
+{
+    handle_i2c = i2c_cmd_link_create();
+    ESP_LOGD(TAG, "Start I2C transfer to %02X.", i2c_address >> 1);
+    ESP_ERROR_CHECK(i2c_master_start(handle_i2c));
+    ESP_ERROR_CHECK(i2c_master_write_byte(
+        handle_i2c, i2c_address | I2C_MASTER_WRITE, true));
+}
+
+//slaveAddr 8-bit
+void IIC_write_byte(uint8_t* data_ptr,uint8_t len)
+{
+    while (len > 0)
+    {
+        ESP_ERROR_CHECK(
+            i2c_master_write_byte(handle_i2c, *data_ptr, true));
+        data_ptr++;
+        len--;
+    }
+}
+
+//slaveAddr 8-bit
+void IIC_cmd_begin()
+{
+    ESP_LOGD(TAG, "End I2C transfer.");
+    ESP_ERROR_CHECK(i2c_master_stop(handle_i2c));
+    ESP_ERROR_CHECK(i2c_master_cmd_begin(I2C_MASTER_NUM, handle_i2c,
+                                       I2C_MASTER_TIMEOUT_MS / portTICK_RATE_MS));
+    i2c_cmd_link_delete(handle_i2c);
 }
 
