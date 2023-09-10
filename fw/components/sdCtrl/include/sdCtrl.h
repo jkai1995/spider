@@ -7,5 +7,5 @@ void sdCtrlSelectStrapping();
 
 void sdCtrlSelectSDCard();
 
-void SDIOInit();
+void SDIOInit(const char* base_path);
 #endif

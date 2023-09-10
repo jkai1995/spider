@@ -110,7 +110,7 @@ void updateAdcValue()
     m_AdcInfo.adcrawTotal += adcraw;
     m_AdcInfo.datacount = (m_AdcInfo.datacount >= NUM_OF_SAMPLES)?(NUM_OF_SAMPLES):(m_AdcInfo.datacount);
 
-    ESP_LOGI(TAG, "adc_raw[%d] = %d adcrawTota=%d datacount=%d", m_AdcInfo.curIdx, adcraw,m_AdcInfo.adcrawTotal,m_AdcInfo.datacount);
+    ESP_LOGD(TAG, "adc_raw[%d] = %d adcrawTota=%d datacount=%d", m_AdcInfo.curIdx, adcraw,m_AdcInfo.adcrawTotal,m_AdcInfo.datacount);
     if (m_AdcInfo.cali_enable)
     {
         if (m_AdcInfo.datacount == NUM_OF_SAMPLES)
@@ -119,7 +119,7 @@ void updateAdcValue()
             m_AdcInfo.voltage = esp_adc_cal_raw_to_voltage(m_AdcInfo.adcrawAve, &(m_AdcInfo.adc1_chars));
         }
 
-        ESP_LOGI(TAG, "cali data: %d mV", m_AdcInfo.voltage);
+        ESP_LOGD(TAG, "cali data: %d mV", m_AdcInfo.voltage);
     }
 
     m_AdcInfo.curIdx++;

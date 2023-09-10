@@ -21,52 +21,13 @@
 #include <esp_log.h>
 #include "inputKey.h"
 #include "powerCtrl.h"
-#include "sdCtrl.h"
+//#include "sdCtrl.h"
+#include "fileExplorer.h"
+
 #include "rotary_encoder.h"
 
 static const char *TAG = "wjk";
 
-void showDemo(void)
-{
-	//static uint8_t t=' ';
-			//OLED_ShowPicture(0,0,128,64,BMP2,1);
-		//OLED_Refresh();
-		/*vTaskDelay(pdMS_TO_TICKS(500));
-		OLED_Clear();
-		OLED_ShowChinese(0,0,0,16,1);
-		OLED_ShowChinese(18,0,1,16,1);
-		OLED_ShowChinese(36,0,2,16,1);
-		OLED_ShowChinese(54,0,3,16,1);
-		OLED_ShowChinese(72,0,4,16,1);
-		OLED_ShowChinese(90,0,5,16,1);
-		OLED_ShowChinese(108,0,6,16,1);
-		OLED_ShowString(8,16,"ZHONGJINGYUAN",16,1);
-		OLED_ShowString(20,32,"2014/05/01",16,1);
-		OLED_ShowString(0,48,"ASCII:",16,1);
-		OLED_ShowString(63,48,"CODE:",16,1);
-		OLED_ShowChar(48,48,t,16,1);
-		t++;
-		if(t>'~')t=' ';
-		OLED_ShowNum(103,48,t,3,16,1);
-		OLED_Refresh();
-		vTaskDelay(pdMS_TO_TICKS(500));
-		OLED_Clear();
-		OLED_ShowChinese(0,0,0,16,1);
-	  OLED_ShowChinese(16,0,0,24,1);
-		OLED_ShowChinese(24,20,0,32,1);
-	  OLED_ShowChinese(64,0,0,64,1);
-		OLED_Refresh();
-	  vTaskDelay(pdMS_TO_TICKS(500));
-	OLED_Clear();
-		OLED_ShowString(0,0,"ABC",8,1);
-		OLED_ShowString(0,8,"ABC",12,1);
-	  OLED_ShowString(0,20,"ABC",16,1);
-		OLED_ShowString(0,36,"ABC",24,1);
-	  OLED_Refresh();
-		vTaskDelay(pdMS_TO_TICKS(500));
-		OLED_ScrollDisplay(11,4,1);*/
-
-}
 rotary_encoder_t *encoder = NULL;
 
 
@@ -116,13 +77,15 @@ void app_main(void)
     ESP_LOGI(TAG, "I2C1_Init ret = %d",ret);
     //OLED_Init();
     PowerCtrlInit();
-    SDCardCtrlInit();
-    sdCtrlSelectSDCard();
+    FileExplorer_t *pFileExplorer;
+    FileExplorerInit(&pFileExplorer);
+    //SDCardCtrlInit();
+    //sdCtrlSelectSDCard();
     encoderInit();
     //showDemo();
     u8g2Init();
     //webserver_main();
-    SDIOInit();
+    //SDIOInit();
     inputKeyInit(updateIntervalMs);
     int keyValue1= 0;
     int keyValue2= 0;
@@ -131,6 +94,9 @@ void app_main(void)
     uint32_t lastv = 0;
     TickType_t xLastWakeTime = xTaskGetTickCount();
     const TickType_t ticks = pdMS_TO_TICKS(updateIntervalMs);
+    char *selectedName;
+    int  isDir = 0;
+    FileExplorer_getSelectedEntry(&selectedName,&isDir);
     while (1)
     {
         xTaskDelayUntil( &xLastWakeTime, ticks);
@@ -138,7 +104,7 @@ void app_main(void)
         updateAdcValue();
 
         voltage = getPowerVoltage();
-        ESP_LOGI(TAG, "voltage %d",voltage);
+        //ESP_LOGI(TAG, "voltage %d",voltage);
         if (state_None != getKeyState(Up))
         {
             keyValue1++;
@@ -168,11 +134,42 @@ void app_main(void)
 
         if (keyValue1 > 0 || keyValue2 > 0 || keyValue3 >0)
         {
-            ESP_LOGI(TAG, "keyCount50Hz = %d,%d,%d",getKeyState(Up),getKeyState(Middle),getKeyState(Down));
+            inputKey_State_t upst = getKeyState(Up);
+            inputKey_State_t midst = getKeyState(Middle);
+            inputKey_State_t dst = getKeyState(Down);
+            if (upst == state_click)
+            {
+                FileExplorer_preEntry();
+            }
+            else if (midst == state_click)
+            {
+                if (isDir)
+                {
+                    FileExplorer_cd(selectedName);
+                }
+                else
+                {
+                    FileExplorer_cat(selectedName);
+                }
+            }
+            else if (dst == state_click)
+            {
+                FileExplorer_nextEntry();
+            }
+
+            FileExplorer_getSelectedEntry(&selectedName,&isDir);
+            if (isDir)
+            {
+                ESP_LOGI(TAG, "<%s>",selectedName);
+            }
+            else
+            {
+                ESP_LOGI(TAG, " %s ",selectedName);
+            }
         }
 
         int counter = encoder->get_counter_value(encoder);
-        ESP_LOGI(TAG, "Encoder value: %d", counter);
+        //ESP_LOGI(TAG, "Encoder value: %d", counter);
 
         if (lastv != voltage)
         {

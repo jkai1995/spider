@@ -12,9 +12,8 @@
 
 static const char *TAG = "SDIO";
 
-#define MOUNT_POINT "/sdcard"
 
-void SDIOInit()
+void SDIOInit(const char* base_path)
 {
     esp_err_t ret;
 
@@ -29,7 +28,7 @@ void SDIOInit()
     };
 
     sdmmc_card_t *card;
-    const char mount_point[] = MOUNT_POINT;
+    //const char mount_point[] = base_path;
     ESP_LOGI(TAG, "Initializing SD card");
 
     sdmmc_host_t host = SDMMC_HOST_DEFAULT();
@@ -38,7 +37,7 @@ void SDIOInit()
 
     //slot_config.flags |= SDMMC_SLOT_FLAG_INTERNAL_PULLUP;
 
-    ret = esp_vfs_fat_sdmmc_mount(mount_point, &host, &slot_config, &mount_config, &card);
+    ret = esp_vfs_fat_sdmmc_mount(base_path, &host, &slot_config, &mount_config, &card);
 
     if (ret != ESP_OK) {
         if (ret == ESP_FAIL) {
@@ -53,29 +52,5 @@ void SDIOInit()
     ESP_LOGI(TAG, "Filesystem mounted");
 
     sdmmc_card_print_info(stdout, card);
-
-
-
-
-    const char *file_foo = MOUNT_POINT"/myfolder/my.txt";
-
-    // Open renamed file for reading
-    ESP_LOGI(TAG, "Reading file %s", file_foo);
-    FILE *f = fopen(file_foo, "r");
-    if (f == NULL) {
-        ESP_LOGE(TAG, "Failed to open file for reading");
-        return;
-    }
-
-
-    // Read a line from file
-    char line[64];
-    fgets(line, sizeof(line), f);
-    fclose(f);
-
-    ESP_LOGI(TAG, "Read from file: '%s'", line);
-
-    esp_vfs_fat_sdcard_unmount(mount_point, card);
-    ESP_LOGI(TAG, "Card unmounted");
 }
 
