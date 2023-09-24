@@ -19,12 +19,13 @@
 #include "u8g2_esp32_hal.h"
 //#include "bmp.h"
 #include <esp_log.h>
-#include "inputKey.h"
+
 #include "powerCtrl.h"
 //#include "sdCtrl.h"
 #include "fileExplorer.h"
 
 #include "rotary_encoder.h"
+#include "sample.h"
 
 static const char *TAG = "wjk";
 
@@ -73,7 +74,7 @@ void app_main(void)
 
     int updateIntervalMs = 20;
 
-    int ret = I2C1_Init(100000);
+    int ret = I2C1_Init(600000);
     ESP_LOGI(TAG, "I2C1_Init ret = %d",ret);
     //OLED_Init();
     PowerCtrlInit();
@@ -84,12 +85,13 @@ void app_main(void)
     encoderInit();
     //showDemo();
     u8g2Init();
+    sampleTaskInit();
     //webserver_main();
     //SDIOInit();
-    inputKeyInit(updateIntervalMs);
-    int keyValue1= 0;
-    int keyValue2= 0;
-    int keyValue3= 0;
+    //inputKeyInit(updateIntervalMs);
+    //int keyValue1= 0;
+    //int keyValue2= 0;
+    //int keyValue3= 0;
     uint32_t voltage = 0;
     uint32_t lastv = 0;
     TickType_t xLastWakeTime = xTaskGetTickCount();
@@ -100,12 +102,12 @@ void app_main(void)
     while (1)
     {
         xTaskDelayUntil( &xLastWakeTime, ticks);
-        updateKeyValue();
+        //updateKeyValue();
         updateAdcValue();
 
         voltage = getPowerVoltage();
         //ESP_LOGI(TAG, "voltage %d",voltage);
-        if (state_None != getKeyState(Up))
+/*        if (state_None != getKeyState(Up))
         {
             keyValue1++;
         }
@@ -167,7 +169,7 @@ void app_main(void)
                 ESP_LOGI(TAG, " %s ",selectedName);
             }
         }
-
+*/
         int counter = encoder->get_counter_value(encoder);
         //ESP_LOGI(TAG, "Encoder value: %d", counter);
 

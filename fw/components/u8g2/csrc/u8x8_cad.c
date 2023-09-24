@@ -506,12 +506,12 @@ uint8_t u8x8_cad_ssd13xx_i2c(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *a
       /* so this is done here. Even further, only 24 bytes will be sent, */
       /* because there will be another byte (DC) required during the transfer */
       p = arg_ptr;
-       while( arg_int > 24 )
+       /*while( arg_int > 24 )
       {
 	u8x8_i2c_data_transfer(u8x8, 24, p);
 	arg_int-=24;
 	p+=24;
-      }
+      }*/
       u8x8_i2c_data_transfer(u8x8, arg_int, p);
       break;
     case U8X8_MSG_CAD_INIT:
@@ -576,12 +576,12 @@ uint8_t u8x8_cad_ssd13xx_fast_i2c(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, vo
       /* so this is done here. Even further, only 24 bytes will be sent, */
       /* because there will be another byte (DC) required during the transfer */
       p = arg_ptr;
-       while( arg_int > 24 )
+       /*while( arg_int > 24 )
       {
 	u8x8_i2c_data_transfer(u8x8, 24, p);
 	arg_int-=24;
 	p+=24;
-      }
+      }*/
       u8x8_i2c_data_transfer(u8x8, arg_int, p);
       in_transfer = 0;
       break;

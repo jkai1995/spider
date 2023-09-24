@@ -27,6 +27,7 @@ typedef struct
     uint32_t        maxRecordCount;
     uint32_t        pressDetectMs;
     inputPin_Info_t pinInfo[PinMax];
+    InputKeyOpt_t   opt;
 }inputKey_Info_t;
 
 static gpioInfo_t m_gpioInputKey[PinMax] = 
@@ -40,32 +41,6 @@ static inputKey_Info_t g_inputKeyInfo;
 
 #define GetInKeyValue(p) gpio_get_level(m_gpioInputKey[p].pinx)
 
-void inputKeyInit(int    updateIntervalMs)
-{
-    uint64_t pinMask = 0;
-    g_inputKeyInfo.pinNum = PinMax;
-    g_inputKeyInfo.updateIntervalMs = updateIntervalMs;
-    g_inputKeyInfo.maxRecordMs = 10*1000;
-    g_inputKeyInfo.maxRecordCount = g_inputKeyInfo.maxRecordMs/updateIntervalMs;
-    g_inputKeyInfo.pressDetectMs = 1000;
-
-    for (int i = 0; i < g_inputKeyInfo.pinNum; i++)
-    {
-        g_inputKeyInfo.pinInfo[i].pGpioInfo = &(m_gpioInputKey[i]);
-        pinMask |= (1 << m_gpioInputKey[i].pinx);
-    }
-
-    gpio_config_t io_conf = {};
-    io_conf.intr_type = GPIO_INTR_DISABLE;
-    io_conf.mode = GPIO_MODE_INPUT;
-    io_conf.pin_bit_mask = pinMask;
-    io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
-    io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
-    //configure GPIO with the given settings
-    gpio_config(&io_conf);
-
-    updateKeyValue();
-}
 
 void updateKeyValue()
 {
@@ -130,4 +105,39 @@ bool isKeyDown(inputKey_type_t inputKey)
     }
     return 0;
 }
+
+void inputKeyInit(int    updateIntervalMs,InputKeyOpt_t **keyopt)
+{
+    uint64_t pinMask = 0;
+    g_inputKeyInfo.pinNum = PinMax;
+    g_inputKeyInfo.updateIntervalMs = updateIntervalMs;
+    g_inputKeyInfo.maxRecordMs = 10*1000;
+    g_inputKeyInfo.maxRecordCount = g_inputKeyInfo.maxRecordMs/updateIntervalMs;
+    g_inputKeyInfo.pressDetectMs = 1000;
+
+    for (int i = 0; i < g_inputKeyInfo.pinNum; i++)
+    {
+        g_inputKeyInfo.pinInfo[i].pGpioInfo = &(m_gpioInputKey[i]);
+        pinMask |= (1 << m_gpioInputKey[i].pinx);
+    }
+
+    gpio_config_t io_conf = {};
+    io_conf.intr_type = GPIO_INTR_DISABLE;
+    io_conf.mode = GPIO_MODE_INPUT;
+    io_conf.pin_bit_mask = pinMask;
+    io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+    io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
+    //configure GPIO with the given settings
+    gpio_config(&io_conf);
+
+    g_inputKeyInfo.opt.updateKeyValue   = updateKeyValue;
+    g_inputKeyInfo.opt.getKeyLevel      = getKeyLevel;
+    g_inputKeyInfo.opt.getKeyState      = getKeyState;
+    g_inputKeyInfo.opt.isKeyDown        = isKeyDown;
+
+    *keyopt = &(g_inputKeyInfo.opt);
+
+    updateKeyValue();
+}
+
 
