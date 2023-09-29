@@ -63,6 +63,7 @@ typedef struct
     int                             datacount;
     AdcCfg_t                        *pAdcCfg;
     uint32_t                        voltage;
+    PowerOpt_t                      opt;
 }AdcInfo_t;
 
 
@@ -149,7 +150,19 @@ static void adcInit()
     m_AdcInfo.adcrawAve = 0;
 }
 
-void PowerCtrlInit()
+void powerCtrlSelect(PowerCtrl_type_t pc_t)
+{
+    if (PC_UART == pc_t)
+    {
+        gpio_set_level(m_gpioPowerCtrl[0].pinx,CH442E_UART);
+    }
+    else if (PC_PowerDelivery == pc_t)
+    {
+        gpio_set_level(m_gpioPowerCtrl[0].pinx,CH442E_PowerDelivery);
+    }
+}
+
+void PowerCtrlInit(PowerOpt_t **opt)
 {
     uint64_t pinMask = 0;
     pinMask |= (1 << m_gpioPowerCtrl[0].pinx);
@@ -166,15 +179,11 @@ void PowerCtrlInit()
     gpio_set_level(m_gpioPowerCtrl[0].pinx,m_gpioPowerCtrl[0].dftLevel);
 
     adcInit();
-}
 
-void powerCtrlSelectUart()
-{
-    gpio_set_level(m_gpioPowerCtrl[0].pinx,CH442E_UART);
-}
+    m_AdcInfo.opt.updateAdcValue   = updateAdcValue;
+    m_AdcInfo.opt.getPowerVoltagemV  = getPowerVoltage;
+    m_AdcInfo.opt.powerCtrlSelect  = powerCtrlSelect;
 
-void powerCtrlSelectPD()
-{
-    gpio_set_level(m_gpioPowerCtrl[0].pinx,CH442E_PowerDelivery);
+    *opt = &(m_AdcInfo.opt);
 }
 

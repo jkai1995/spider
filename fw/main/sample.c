@@ -4,6 +4,7 @@
 #include "freertos/task.h"
 #include "inputKey.h"
 #include "rotary_encoder.h"
+#include "powerCtrl.h"
 
 #include <esp_log.h>
 
@@ -17,6 +18,7 @@ static const char *TAG = "sample";
 static TaskHandle_t s_xHandle_task1 = NULL;
 static InputKeyOpt_t    *s_pInputKey = NULL;
 rotary_encoder_t        *encoder = NULL;
+PowerOpt_t              *powerCtrl = NULL;
 
 
 void encoderInit(void)
@@ -47,6 +49,7 @@ void sampleTaskInit()
 {
     inputKeyInit(SAMPLEINTERVAL_MS,&s_pInputKey);
     encoderInit();
+    PowerCtrlInit(&powerCtrl);
     xTaskCreatePinnedToCore(vTask1,             //任务函数
                             "task1",            //任务名称
                             2048,               //堆栈大小
@@ -69,6 +72,7 @@ void vTask1(void * pvParameters)
         {
             encoder->sample_encoder(encoder);
         }
+        powerCtrl->updateAdcValue();
 
         if (1)
         {
@@ -88,6 +92,12 @@ void vTask1(void * pvParameters)
             {
                 ESP_LOGI(TAG, "encoder : cnt=%4d rspeed=%f r/s ",encoderCnt,encoderRPS);
             }
+
+            uint32_t voltage = 0;
+
+            voltage = powerCtrl->getPowerVoltagemV();
+            ESP_LOGI(TAG, "voltage : %4dmV",voltage);
+            powerCtrl->powerCtrlSelect(PC_PowerDelivery);
         }
 
         samplingTicks++;

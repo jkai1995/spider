@@ -19,7 +19,7 @@
 #include "u8g2_esp32_hal.h"
 #include <esp_log.h>
 
-#include "powerCtrl.h"
+
 //#include "sdCtrl.h"
 #include "fileExplorer.h"
 #include "sample.h"
@@ -54,23 +54,23 @@ void app_main(void)
     int ret = I2C1_Init(600000);
     ESP_LOGI(TAG, "I2C1_Init ret = %d",ret);
     //OLED_Init();
-    PowerCtrlInit();
+    //PowerCtrlInit();
     FileExplorer_t *pFileExplorer;
     FileExplorerInit(&pFileExplorer);
     //SDCardCtrlInit();
     //sdCtrlSelectSDCard();
     //encoderInit();
     //showDemo();
-    u8g2Init();
     sampleTaskInit();
+
+    u8g2Init();
     //webserver_main();
     //SDIOInit();
     //inputKeyInit(updateIntervalMs);
     //int keyValue1= 0;
     //int keyValue2= 0;
     //int keyValue3= 0;
-    uint32_t voltage = 0;
-    uint32_t lastv = 0;
+
     TickType_t xLastWakeTime = xTaskGetTickCount();
     const TickType_t ticks = pdMS_TO_TICKS(updateIntervalMs);
     char *selectedName;
@@ -80,9 +80,9 @@ void app_main(void)
     {
         xTaskDelayUntil( &xLastWakeTime, ticks);
         //updateKeyValue();
-        updateAdcValue();
+        //updateAdcValue();
 
-        voltage = getPowerVoltage();
+        //voltage = getPowerVoltage();
         //ESP_LOGI(TAG, "voltage %d",voltage);
 /*        if (state_None != getKeyState(Up))
         {
@@ -150,14 +150,5 @@ void app_main(void)
         //int counter = encoder->get_counter_value(encoder);
         //ESP_LOGI(TAG, "Encoder value: %d", counter);
 
-        if (lastv != voltage)
-        {
-            //OLED_ShowNum(0,0,voltage,10,16,1);
-            //OLED_ShowNum(0,17,counter,10,16,1);
-            //OLED_Refresh();
-        }
-
-
-        lastv = voltage;
     }
 }

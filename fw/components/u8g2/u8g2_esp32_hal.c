@@ -6,6 +6,7 @@
 #include "u8g2.h"
 #include "i2cDriver.h"
 #include "u8g2_esp32_hal.h"
+#include "powerCtrl.h"
 
 static const char* TAG = "u8g2_hal";
 
@@ -107,6 +108,9 @@ static TaskHandle_t xHandle_task1 = NULL;
 static void vTask1(void * pvParameters);
 static u8g2_t m_u8g2;
 
+extern PowerOpt_t *powerCtrl;
+
+
 void u8g2Init()
 {
     u8g2_Setup_ssd1306_i2c_128x64_noname_f(
@@ -169,6 +173,7 @@ void vTask1(void * pvParameters)
     char var_buff[100];
     u8g2_SetFontMode(&m_u8g2,0);
     u8g2_SetDrawColor(&m_u8g2,1);
+    uint32_t voltage = 0;
     while (1)
     {
         xTaskDelayUntil( &xLastWakeTime, ticks);
@@ -183,7 +188,11 @@ void vTask1(void * pvParameters)
 
         u8g2_DrawLine(&m_u8g2,point_s.x,point_s.y,point_e.x,point_e.y);
         time3 = (timeuse2-timeuse);
-        sprintf(var_buff, "%6dus", time3);
+
+        voltage = powerCtrl->getPowerVoltagemV();
+//        ESP_LOGI(TAG, "voltage : %4dmV",voltage);
+
+        sprintf(var_buff, "%6dus %dmV", time3,voltage);
 
         u8g2_DrawStr(&m_u8g2, 2, 15, var_buff);
         //u8g2_SetDrawColor(&m_u8g2,0);

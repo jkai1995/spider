@@ -1,14 +1,19 @@
 #ifndef _POWERCTRL_H
 #define _POWERCTRL_H
 
-void PowerCtrlInit();
+typedef enum
+{
+    PC_UART,
+    PC_PowerDelivery,
+    PC_Max,
+} PowerCtrl_type_t;
 
-void updateAdcValue();
+typedef struct
+{
+    void                (*updateAdcValue)   (void);
+    uint32_t            (*getPowerVoltagemV)  (void);
+    void                (*powerCtrlSelect)  (PowerCtrl_type_t pc_t);
+}PowerOpt_t;
 
-uint32_t getPowerVoltage();
-
-void powerCtrlSelectUart();
-
-void powerCtrlSelectPD();
-
+void PowerCtrlInit(PowerOpt_t **opt);
 #endif
