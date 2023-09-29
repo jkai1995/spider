@@ -2,8 +2,7 @@
 # in this exact order for cmake to work correctly
 cmake_minimum_required(VERSION 3.5)
 
-set(EXTRA_COMPONENT_DIRS "$ENV{IDF_PATH}/examples/common_components/protocol_examples_common"
-						 "$ENV{IDF_PATH}/examples/peripherals/pcnt/rotary_encoder/components")
+set(EXTRA_COMPONENT_DIRS "$ENV{IDF_PATH}/examples/common_components/protocol_examples_common")
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(hand_of_home)

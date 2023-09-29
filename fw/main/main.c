@@ -17,38 +17,15 @@
 
 #include "i2cDriver.h"
 #include "u8g2_esp32_hal.h"
-//#include "bmp.h"
 #include <esp_log.h>
 
 #include "powerCtrl.h"
 //#include "sdCtrl.h"
 #include "fileExplorer.h"
-
-#include "rotary_encoder.h"
 #include "sample.h"
 
 static const char *TAG = "wjk";
 
-rotary_encoder_t *encoder = NULL;
-
-
-void encoderInit(void)
-{
-    // Rotary encoder underlying device is represented by a PCNT unit in this example
-    uint32_t pcnt_unit = 0;
-
-    // Create rotary encoder instance
-    rotary_encoder_config_t config = ROTARY_ENCODER_DEFAULT_CONFIG((rotary_encoder_dev_t)pcnt_unit, 25, 33);
-
-    ESP_ERROR_CHECK(rotary_encoder_new_ec11(&config, &encoder));
-
-    // Filter out glitch (1us)
-    ESP_ERROR_CHECK(encoder->set_glitch_filter(encoder, 1));
-
-    // Start encoder
-    ESP_ERROR_CHECK(encoder->start(encoder));
-
-}
 
 void app_main(void)
 {
@@ -82,7 +59,7 @@ void app_main(void)
     FileExplorerInit(&pFileExplorer);
     //SDCardCtrlInit();
     //sdCtrlSelectSDCard();
-    encoderInit();
+    //encoderInit();
     //showDemo();
     u8g2Init();
     sampleTaskInit();
@@ -170,7 +147,7 @@ void app_main(void)
             }
         }
 */
-        int counter = encoder->get_counter_value(encoder);
+        //int counter = encoder->get_counter_value(encoder);
         //ESP_LOGI(TAG, "Encoder value: %d", counter);
 
         if (lastv != voltage)
