@@ -8,6 +8,6 @@ typedef struct
 }Point_t;
 
 
-void u8g2Init();
+void u8g2Init(u8g2_t *pU8g2);
 
 #endif

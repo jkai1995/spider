@@ -16,13 +16,13 @@
 #include "webserver.h"
 
 #include "i2cDriver.h"
-#include "u8g2_esp32_hal.h"
 #include <esp_log.h>
 
 
 //#include "sdCtrl.h"
 #include "fileExplorer.h"
 #include "sample.h"
+#include "display.h"
 
 static const char *TAG = "wjk";
 
@@ -63,7 +63,7 @@ void app_main(void)
     //showDemo();
     sampleTaskInit();
 
-    u8g2Init();
+    displayInit();
     //webserver_main();
     //SDIOInit();
     //inputKeyInit(updateIntervalMs);

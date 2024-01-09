@@ -11,7 +11,7 @@
 
 #define SAMPLEINTERVAL_MS (20)
 #define ENCODERSAMPLE_DIV (10)
-#define SAMPLINGTICKMAX (100)
+#define SAMPLINGTICKMAX (1000)
 
 
 static const char *TAG = "sample";
@@ -42,24 +42,7 @@ void encoderInit(void)
 
 }
 
-
-static void vTask1(void * pvParameters);
-
-void sampleTaskInit()
-{
-    inputKeyInit(SAMPLEINTERVAL_MS,&s_pInputKey);
-    encoderInit();
-    PowerCtrlInit(&powerCtrl);
-    xTaskCreatePinnedToCore(vTask1,             //任务函数
-                            "task1",            //任务名称
-                            2048,               //堆栈大小
-                            NULL,               //传递参数
-                            2,                  //任务优先级
-                            &s_xHandle_task1,     //任务句柄
-                            0);    //无关联，不绑定在任何一个核上
-}
-
-void vTask1(void * pvParameters)
+static void vTask1(void * pvParameters)
 {
     TickType_t xLastWakeTime = xTaskGetTickCount();
     const TickType_t ticks = pdMS_TO_TICKS(SAMPLEINTERVAL_MS);
@@ -97,7 +80,7 @@ void vTask1(void * pvParameters)
 
             voltage = powerCtrl->getPowerVoltagemV();
             ESP_LOGI(TAG, "voltage : %4dmV",voltage);
-            powerCtrl->powerCtrlSelect(PC_PowerDelivery);
+
         }
 
         samplingTicks++;
@@ -107,6 +90,20 @@ void vTask1(void * pvParameters)
         }
         xTaskDelayUntil( &xLastWakeTime, ticks);
     }
+}
+
+void sampleTaskInit()
+{
+    inputKeyInit(SAMPLEINTERVAL_MS,&s_pInputKey);
+    encoderInit();
+    PowerCtrlInit(&powerCtrl);
+    xTaskCreatePinnedToCore(vTask1,             //任务函数
+                            "task1",            //任务名称
+                            2048,               //堆栈大小
+                            NULL,               //传递参数
+                            2,                  //任务优先级
+                            &s_xHandle_task1,     //任务句柄
+                            0);    //无关联，不绑定在任何一个核上
 }
 
 

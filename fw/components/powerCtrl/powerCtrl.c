@@ -56,13 +56,13 @@ typedef struct
 {
     esp_adc_cal_characteristics_t   adc1_chars;
     bool                            cali_enable;
-    int                             adc_raw[NUM_OF_SAMPLES];
-    int                             adcrawAve;
-    int                             adcrawTotal;
-    int                             curIdx;
-    int                             datacount;
+    int                             adc_raw[NUM_OF_SAMPLES];//ring buffer
+    int                             curIdx;//ring buffer index
+    int                             adcrawTotal;//sum of the ring buffer
+    int                             adcrawAve;//ave of the ring buffer
+    int                             datacount;//valid data count in the ring buffer
     AdcCfg_t                        *pAdcCfg;
-    uint32_t                        voltage;
+    uint32_t                        voltage_mV;
     PowerOpt_t                      opt;
 }AdcInfo_t;
 
@@ -77,7 +77,6 @@ static AdcCfg_t m_ADCCfg =
 };
 
 static AdcInfo_t m_AdcInfo;
-
 static bool adc_calibration_init(void)
 {
     esp_err_t ret;
@@ -96,6 +95,31 @@ static bool adc_calibration_init(void)
     }
 
     return cali_enable;
+}
+
+void powerCtrlSelect(PowerCtrl_type_t pc_t)
+{
+    if (PC_UART == pc_t)
+    {
+        gpio_set_level(m_gpioPowerCtrl[0].pinx,CH442E_UART);
+    }
+    else if (PC_PowerDelivery == pc_t)
+    {
+        gpio_set_level(m_gpioPowerCtrl[0].pinx,CH442E_PowerDelivery);
+    }
+}
+
+PowerCtrl_type_t getPowerCtrlType()
+{
+    int gpioLevel = gpio_get_level(m_gpioPowerCtrl[0].pinx);
+    if (CH442E_UART == gpioLevel)
+    {
+        return PC_UART;
+    }
+    else
+    {
+        return PC_PowerDelivery;
+    }
 }
 
 void updateAdcValue()
@@ -117,20 +141,19 @@ void updateAdcValue()
         if (m_AdcInfo.datacount == NUM_OF_SAMPLES)
         {
             m_AdcInfo.adcrawAve = m_AdcInfo.adcrawTotal/NUM_OF_SAMPLES;
-            m_AdcInfo.voltage = esp_adc_cal_raw_to_voltage(m_AdcInfo.adcrawAve, &(m_AdcInfo.adc1_chars));
+            m_AdcInfo.voltage_mV = esp_adc_cal_raw_to_voltage(m_AdcInfo.adcrawAve, &(m_AdcInfo.adc1_chars));
         }
 
-        ESP_LOGD(TAG, "cali data: %d mV", m_AdcInfo.voltage);
+        ESP_LOGD(TAG, "cali data: %d mV", m_AdcInfo.voltage_mV);
     }
 
     m_AdcInfo.curIdx++;
     m_AdcInfo.curIdx = (m_AdcInfo.curIdx >= NUM_OF_SAMPLES)?(0):(m_AdcInfo.curIdx);
-
 }
 
 uint32_t getPowerVoltage()
 {
-    return m_AdcInfo.voltage;//mV
+    return m_AdcInfo.voltage_mV;//mV
 }
 
 
@@ -146,20 +169,8 @@ static void adcInit()
     m_AdcInfo.curIdx = 0;
     m_AdcInfo.datacount = 0;
     m_AdcInfo.adcrawTotal = 0;
-    m_AdcInfo.voltage = 0;
+    m_AdcInfo.voltage_mV = 0;
     m_AdcInfo.adcrawAve = 0;
-}
-
-void powerCtrlSelect(PowerCtrl_type_t pc_t)
-{
-    if (PC_UART == pc_t)
-    {
-        gpio_set_level(m_gpioPowerCtrl[0].pinx,CH442E_UART);
-    }
-    else if (PC_PowerDelivery == pc_t)
-    {
-        gpio_set_level(m_gpioPowerCtrl[0].pinx,CH442E_PowerDelivery);
-    }
 }
 
 void PowerCtrlInit(PowerOpt_t **opt)
@@ -169,7 +180,7 @@ void PowerCtrlInit(PowerOpt_t **opt)
 
     gpio_config_t io_conf = {};
     io_conf.intr_type = GPIO_INTR_DISABLE;
-    io_conf.mode = GPIO_MODE_OUTPUT;
+    io_conf.mode = GPIO_MODE_INPUT_OUTPUT;
     io_conf.pin_bit_mask = pinMask;
     io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
     io_conf.pull_up_en = GPIO_PULLDOWN_DISABLE;
@@ -183,6 +194,7 @@ void PowerCtrlInit(PowerOpt_t **opt)
     m_AdcInfo.opt.updateAdcValue   = updateAdcValue;
     m_AdcInfo.opt.getPowerVoltagemV  = getPowerVoltage;
     m_AdcInfo.opt.powerCtrlSelect  = powerCtrlSelect;
+    m_AdcInfo.opt.getPowerCtrlType = getPowerCtrlType;
 
     *opt = &(m_AdcInfo.opt);
 }

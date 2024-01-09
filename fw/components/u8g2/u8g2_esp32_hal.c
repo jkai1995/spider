@@ -104,112 +104,38 @@ uint8_t u8g2_esp32_gpio_and_delay_cb(u8x8_t* u8x8,
   return 0;
 }  // u8g2_esp32_gpio_and_delay_cb
 
-static TaskHandle_t xHandle_task1 = NULL;
-static void vTask1(void * pvParameters);
-static u8g2_t m_u8g2;
-
-extern PowerOpt_t *powerCtrl;
-
-
-void u8g2Init()
+void u8g2Init(u8g2_t *pU8g2)
 {
     u8g2_Setup_ssd1306_i2c_128x64_noname_f(
-        &m_u8g2,
+        pU8g2,
         U8G2_R0,
         u8g2_esp32_i2c_byte_cb,
         u8g2_esp32_gpio_and_delay_cb);
 
-    u8x8_SetI2CAddress(&m_u8g2.u8x8, 0x78);
+    u8x8_SetI2CAddress(&pU8g2->u8x8, 0x78);
 
-    u8g2_InitDisplay(&m_u8g2);
+    u8g2_InitDisplay(pU8g2);
 
-    u8g2_SetPowerSave(&m_u8g2, 0);  // wake up display
+    u8g2_SetPowerSave(pU8g2, 0);  // wake up display
 
-    u8g2_ClearBuffer(&m_u8g2);
+    u8g2_ClearBuffer(pU8g2);
 
-    u8g2_DrawBox(&m_u8g2, 0, 26, 80, 6);
-    u8g2_DrawFrame(&m_u8g2, 0, 26, 100, 6);
+    u8g2_DrawBox(pU8g2, 0, 26, 80, 6);
+    u8g2_DrawFrame(pU8g2, 0, 26, 100, 6);
 
     ESP_LOGI(TAG, "u8g2_SetFont");
-    u8g2_SetFont(&m_u8g2, u8g2_font_9x18_tn);
+    u8g2_SetFont(pU8g2, u8g2_font_9x18_tn);
     ESP_LOGI(TAG, "u8g2_DrawStr");
-    u8g2_DrawStr(&m_u8g2, 2, 17, "Hi nkolban!");
+    u8g2_DrawStr(pU8g2, 2, 17, "Hi nkolban!");
     ESP_LOGI(TAG, "u8g2_SendBuffer");
 
-    u8g2_SetFont(&m_u8g2, u8g2_font_unifont_t_symbols);
-    u8g2_DrawGlyph(&m_u8g2, 5, 60, 0x2603);
+    u8g2_SetFont(pU8g2, u8g2_font_unifont_t_symbols);
+    u8g2_DrawGlyph(pU8g2, 5, 60, 0x2603);
 
-    u8g2_SetFont(&m_u8g2, u8g2_font_emoticons21_tr);
-    u8g2_DrawGlyph(&m_u8g2, 22, 60, 0x29);
+    u8g2_SetFont(pU8g2, u8g2_font_emoticons21_tr);
+    u8g2_DrawGlyph(pU8g2, 22, 60, 0x29);
 
-    u8g2_SendBuffer(&m_u8g2);
-
-    xTaskCreatePinnedToCore(vTask1,             //任务函数
-                            "task1",            //任务名称
-                            2048,               //堆栈大小
-                            NULL,               //传递参数
-                            2,                  //任务优先级
-                            &xHandle_task1,     //任务句柄
-                            0);    //无关联，不绑定在任何一个核上
+    u8g2_SendBuffer(pU8g2);
 }
 
-void vTask1(void * pvParameters)
-{
-    TickType_t xLastWakeTime = xTaskGetTickCount();
-    int updateIntervalMs = 33;
-    const TickType_t ticks = pdMS_TO_TICKS(updateIntervalMs);
 
-    u8g2_ClearBuffer(&m_u8g2);
-
-    Point_t point_s,point_e;
-    int count = 0;
-    point_s.x = 0;
-
-    int64_t timeuse,timeuse2;
-    timeuse = 0;
-    timeuse2 = 0;
-    uint32_t time3;
-    u8g2_SetFont(&m_u8g2, u8g2_font_6x13_mr);
-    char var_buff[100];
-    u8g2_SetFontMode(&m_u8g2,0);
-    u8g2_SetDrawColor(&m_u8g2,1);
-    uint32_t voltage = 0;
-    while (1)
-    {
-        xTaskDelayUntil( &xLastWakeTime, ticks);
-
-        point_s.x = (count/17)*127;
-        point_s.y = 0;
-
-        point_e.x = 8*(count%17);
-        point_e.y = 64;
-
-        count++;
-
-        u8g2_DrawLine(&m_u8g2,point_s.x,point_s.y,point_e.x,point_e.y);
-        time3 = (timeuse2-timeuse);
-
-        voltage = powerCtrl->getPowerVoltagemV();
-//        ESP_LOGI(TAG, "voltage : %4dmV",voltage);
-
-        sprintf(var_buff, "%6dus %dmV", time3,voltage);
-
-        u8g2_DrawStr(&m_u8g2, 2, 15, var_buff);
-        //u8g2_SetDrawColor(&m_u8g2,0);
-        //u8g2_DrawBox(&m_u8g2, 0, 0, 127, 17);
-        //u8g2_SetDrawColor(&m_u8g2,1);
-        //u8g2_DrawButtonUTF8(&m_u8g2, 64, 15,U8G2_BTN_BW1|U8G2_BTN_HCENTER,60,1,1,var_buff);
-        if (count > 32)
-        {
-            count = 0;
-            u8g2_ClearBuffer(&m_u8g2);
-        }
-
-        //printf(":start\n");
-        timeuse = esp_timer_get_time();
-        u8g2_SendBuffer(&m_u8g2);
-        timeuse2 = esp_timer_get_time();
-
-        //printf(": %llu\n",timeuse2-timeuse);
-    }
-}

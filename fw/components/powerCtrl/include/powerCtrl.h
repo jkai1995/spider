@@ -13,6 +13,7 @@ typedef struct
     void                (*updateAdcValue)   (void);
     uint32_t            (*getPowerVoltagemV)  (void);
     void                (*powerCtrlSelect)  (PowerCtrl_type_t pc_t);
+    PowerCtrl_type_t    (*getPowerCtrlType) (void);
 }PowerOpt_t;
 
 void PowerCtrlInit(PowerOpt_t **opt);
