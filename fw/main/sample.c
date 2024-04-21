@@ -57,32 +57,6 @@ static void vTask1(void * pvParameters)
         }
         powerCtrl->updateAdcValue();
 
-        if (1)
-        {
-            inputKey_State_t upst = s_pInputKey->getKeyState(Up);
-            inputKey_State_t midst = s_pInputKey->getKeyState(Middle);
-            inputKey_State_t dst = s_pInputKey->getKeyState(Down);
-
-            if (upst != state_None || midst != state_None || dst != state_None)
-            {
-                ESP_LOGI(TAG, "key : %d %d %d ",upst,midst,dst);
-            }
-
-            int encoderCnt;
-            float encoderRPS;
-            encoderCnt = encoder->get_counter_value(encoder,&encoderRPS);
-            if (encoderCnt != 0)
-            {
-                ESP_LOGI(TAG, "encoder : cnt=%4d rspeed=%f r/s ",encoderCnt,encoderRPS);
-            }
-
-            uint32_t voltage = 0;
-
-            voltage = powerCtrl->getPowerVoltagemV();
-            ESP_LOGI(TAG, "voltage : %4dmV",voltage);
-
-        }
-
         samplingTicks++;
         if (samplingTicks >= SAMPLINGTICKMAX)
         {

@@ -47,8 +47,6 @@ void app_main(void)
 
     printf("Minimum free heap size: %d bytes\n", esp_get_minimum_free_heap_size());
 
-    //webserver_main();
-
     int updateIntervalMs = 20;
 
     int ret = I2C1_Init(600000);
@@ -76,6 +74,7 @@ void app_main(void)
     char *selectedName;
     int  isDir = 0;
     FileExplorer_getSelectedEntry(&selectedName,&isDir);
+    webserver_main();
     while (1)
     {
         xTaskDelayUntil( &xLastWakeTime, ticks);

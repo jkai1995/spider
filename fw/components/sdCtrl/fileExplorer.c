@@ -40,11 +40,11 @@ void ffListInsert(ffList_t *pList,struct dirent * pEntry)
     pNode->prev = pList->pxTail;
     if (pList->pxHead == NULL)
     {
-        pList->pxHead = pNode;
+        pList->pxHead = pNode;//if pNode is the first node
     }
     if (pList->pxTail != NULL)
     {
-        pList->pxTail->next = pNode;
+        pList->pxTail->next = pNode;//if pNode isn't the first node
     }
     pList->pxTail = pNode;
 
@@ -116,6 +116,7 @@ void FileExplorer_updatCurrentPath()
         closedir(dp);
     }
 
+    //the first node may be ".."
     s_ff.pSelectEntry = (pList->pxHead->next != NULL)?(pList->pxHead->next):(pList->pxHead);
     ESP_LOGD(TAG, "select %s - %s", s_ff.pSelectEntry->dirp.d_name,(DT_DIR == s_ff.pSelectEntry->dirp.d_type)?"DIR":"FILE");
 }
