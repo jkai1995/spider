@@ -6,6 +6,8 @@ extern "C" {
 
 void webserver_main(void);
 
+void on_webserverUpdate(void);
+
 #ifdef __cplusplus
 }
 #endif

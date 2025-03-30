@@ -10,7 +10,6 @@
 #include "powerCtrl.h"
 #include "inputKey.h"
 #include "rotary_encoder.h"
-#include "powerCtrl.h"
 #include "webserver.h"
 #include "protocol_examples_common.h"
 

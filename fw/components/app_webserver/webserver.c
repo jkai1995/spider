@@ -22,6 +22,12 @@
 
 
 #include "webserver.h"
+
+#include "powerCtrl.h"
+
+extern PowerOpt_t*          powerCtrl;
+
+
 /* A simple example that demonstrates how to create GET and POST
  * handlers for the web server.
  */
@@ -159,13 +165,21 @@ static void ws_async_send(void *arg)
     httpd_handle_t hd = resp_arg->hd;
     int fd = resp_arg->fd;
 
-    char buff[10];
-    memset(buff, 0, sizeof(buff));
-    sprintf(buff, "%d",1995);
-    
+    char var_buff[100];
+    var_buff[0] = '\0';
+    if (NULL != powerCtrl)
+    {
+        uint32_t voltage = powerCtrl->getPowerVoltagemV();
+        PowerCtrl_type_t pc_t = powerCtrl->getPowerCtrlType();
+        char buff0[50];
+        sprintf(buff0, "Vol:%dmV",voltage);
+        char buff1[50];
+        sprintf(buff1, "PowerCtrl:%s", (pc_t == PC_UART)?"UART":"PD");
+        sprintf(var_buff, "%s;%s", buff0, buff1);
+    }
     memset(&ws_pkt, 0, sizeof(httpd_ws_frame_t));
-    ws_pkt.payload = (uint8_t *)buff;
-    ws_pkt.len = strlen(buff);
+    ws_pkt.payload = (uint8_t *)var_buff;
+    ws_pkt.len = strlen(var_buff);
     ws_pkt.type = HTTPD_WS_TYPE_TEXT;
     
     static size_t max_clients = CONFIG_LWIP_MAX_LISTENING_TCP;
@@ -186,7 +200,6 @@ static void ws_async_send(void *arg)
     }
     free(resp_arg);
 }
-
 
 static esp_err_t trigger_async_send(httpd_handle_t handle, httpd_req_t *req)
 {
